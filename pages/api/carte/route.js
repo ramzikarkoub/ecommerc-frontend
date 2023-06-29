@@ -1,5 +1,5 @@
-import { connectToDB } from "@/utils/database";
-import { Product } from "@models/Product";
+import { connectToDB } from "utils/database";
+import { Product } from "models/Product";
 
 export default async function handle(req, res) {
   console.log(req.body);

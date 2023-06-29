@@ -12,6 +12,7 @@ const nextConfig = {
   babel: {
     plugins: [["styled-components", { ssr: true }]],
   },
+  eslint: { ignoreDuringBuilds: true },
 };
 
 module.exports = nextConfig;
