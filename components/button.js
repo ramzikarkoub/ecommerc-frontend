@@ -40,6 +40,15 @@ export const ButtonStyled = css`
       color: #5542f6;
       border: 1px solid #5542f6;
     `}
+    ${(props) =>
+    props.black &&
+    props.block &&
+    css`
+      background-color: #000;
+      color: #fff;
+      width: 100%;
+      display: block;
+    `}
 `;
 const StyledButton = styled.button`
   ${ButtonStyled}

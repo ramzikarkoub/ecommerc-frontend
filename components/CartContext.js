@@ -2,57 +2,54 @@ import React, { useState, useEffect } from "react";
 const { createContext } = require("react");
 export const CartContext = createContext({});
 export default function CartContextProvider({ children }) {
-  const [cartProducts, setCartProducts] = useState([]);
   const ls = typeof window !== "undefined" ? window.localStorage : null;
+  const [cartProducts, setCartProducts] = useState([]);
   useEffect(() => {
     if (cartProducts?.length > 0) {
-      const serializedCart = JSON.stringify(cartProducts, replacer);
-      ls?.setItem("cart", serializedCart);
+      ls?.setItem("cart", JSON.stringify(cartProducts));
     }
   }, [cartProducts]);
 
   useEffect(() => {
     if (ls && ls.getItem("cart")) {
-      const parsedCart = JSON.parse(ls.getItem("cart"));
-      setCartProducts(parsedCart);
+      setCartProducts(JSON.parse(ls.getItem("cart")));
     }
   }, []);
 
   const addToCart = (productId) => {
     setCartProducts((prev) => [...prev, productId]);
-    // console.log(product._id);
   };
+
   const removeFromCart = (productId) => {
-    console.log(productId);
     setCartProducts((prev) => {
-      const position = prev.indexOf(productId);
-      console.log(position);
-      if (position >= 0) {
-        console.log(position);
-        return prev.filter((value, index) => index !== position);
+      const pos = prev.lastIndexOf(productId);
+      if (pos !== -1) {
+        const updatedCart = prev.filter((value, index) => index !== pos);
+        if (updatedCart.length > 0) {
+          ls?.setItem("cart", JSON.stringify(updatedCart));
+        } else {
+          ls?.removeItem("cart");
+        }
+        return updatedCart;
       }
-      console.log(position);
       return prev;
     });
   };
 
-  // Custom replacer function to handle circular references
-  const replacer = (key, value) => {
-    if (typeof value === "object" && value !== null) {
-      if (key === "exampleCircularProperty") {
-        // Handle specific circular property or remove it
-        return undefined;
-      } else if (key === "exampleNestedObject") {
-        // Handle nested objects with potential circular references
-        return { ...value, circularProperty: undefined };
-      }
-    }
-    return value;
+  const clearCart = () => {
+    ls.clear();
+    console.log(cartProducts);
   };
   console.log(cartProducts);
   return (
     <CartContext.Provider
-      value={{ cartProducts, setCartProducts, addToCart, removeFromCart }}
+      value={{
+        cartProducts,
+        setCartProducts,
+        addToCart,
+        removeFromCart,
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>

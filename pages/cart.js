@@ -6,13 +6,48 @@ import styled from "styled-components";
 import Button from "@/components/button";
 
 export default function cart() {
+  const { cartProducts, addToCart, removeFromCart, clearCart } =
+    useContext(CartContext);
   const [products, setProducts] = useState([]);
-  const { cartProducts, addToCart, removeFromCart } = useContext(CartContext);
-  console.log(cartProducts);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [country, setCountry] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  console.log(name);
+
+  const goToPayment = async () => {
+    const response = await axios.post("/api/checkout", {
+      name,
+      email,
+      city,
+      postalCode,
+      streetAddress,
+      country,
+      cartProducts,
+    });
+
+    if (response.data && response.data.url) {
+      window.location.href = response.data.url;
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (window?.location.href.includes("success")) {
+      setIsSuccess(true);
+      clearCart();
+    }
+  }, []);
 
   let total = 0;
   cartProducts.map((prodId) => {
-    const price = products.find((p) => p._id === prodId)?.price || 0;
+    const price = products?.find((p) => p._id === prodId)?.price || 0;
     total += price;
   });
 
@@ -38,77 +73,147 @@ export default function cart() {
     }
   }, [cartProducts]);
   console.log(products);
-  return (
-    <div>
-      <Header />
+  console.log(cartProducts);
+  {
+    if (isSuccess) {
+      return (
+        <>
+          <Header />
+          <StyledDiv>
+            <ColumnsWrapperSuccess>
+              <Box>
+                <h1>Thanks for your order!</h1>
+                <p>We will email you when your order will be sent.</p>
+              </Box>
+            </ColumnsWrapperSuccess>
+          </StyledDiv>
+        </>
+      );
+    }
+    return (
+      <div>
+        <Header />
 
-      <StyledDiv>
-        <ColumnsWrapper>
-          <Box>
-            <h2>Cart</h2>
-            {!cartProducts?.length && <div>Your cart is empty</div>}
-            {!!products.length && (
-              <Table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product._id}>
-                      <ProductInfoCell>
-                        <ProductImageBox>
-                          <img src={product.images[0]} alt="" />
-                        </ProductImageBox>
-                        {product.title}
-                      </ProductInfoCell>
-
-                      <td>
-                        <Button
-                          onClick={() => removeMoreOfThisProduct(product._id)}
-                        >
-                          -
-                        </Button>
-                        <QuantityLabel>
-                          {
-                            cartProducts.filter((pro) => pro === product._id)
-                              .length
-                          }
-                        </QuantityLabel>
-                        <Button
-                          onClick={() => addMoreOfthisProduct(product._id)}
-                        >
-                          +
-                        </Button>
-                      </td>
-                      <td>
-                        $
-                        {cartProducts.filter((pro) => pro === product._id)
-                          .length * product.price}
-                      </td>
+        <StyledDiv>
+          <ColumnsWrapper>
+            <Box>
+              <h2>Cart</h2>
+              {!cartProducts?.length && <div>Your cart is empty</div>}
+              {!!products.length && (
+                <Table>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Quantity</th>
+                      <th>Price</th>
                     </tr>
-                  ))}
-                  <tr>
-                    <th>Total products</th>
-                    <th>Total quantity</th>
-                    <th>Total Price</th>
-                  </tr>
-                  <tr>
-                    <td>{products.length}</td>
-                    <td>{cartProducts.length}</td>
-                    <td>${total}</td>
-                  </tr>
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr key={product._id}>
+                        <ProductInfoCell>
+                          <ProductImageBox>
+                            <img src={product.images[0]} alt="" />
+                          </ProductImageBox>
+                          {product.title}
+                        </ProductInfoCell>
+
+                        <td>
+                          <Button
+                            onClick={() => removeMoreOfThisProduct(product._id)}
+                          >
+                            -
+                          </Button>
+                          <QuantityLabel>
+                            {
+                              cartProducts.filter((pro) => pro === product._id)
+                                .length
+                            }
+                          </QuantityLabel>
+                          <Button
+                            onClick={() => addMoreOfthisProduct(product._id)}
+                          >
+                            +
+                          </Button>
+                        </td>
+                        <td>
+                          $
+                          {cartProducts.filter((pro) => pro === product._id)
+                            .length * product.price}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <th>Total products</th>
+                      <th>Total quantity</th>
+                      <th>Total Price</th>
+                    </tr>
+                    <tr>
+                      <td>{products.length}</td>
+                      <td>{cartProducts.length}</td>
+                      <td>${total}</td>
+                    </tr>
+                  </tbody>
+                </Table>
+              )}
+            </Box>
+            {!!cartProducts?.length && (
+              <Box>
+                <h2>Order information</h2>
+                <Input
+                  type="text"
+                  placeholder="Name"
+                  value={name}
+                  name="name"
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <Input
+                  type="text"
+                  placeholder="Email"
+                  value={email}
+                  name="email"
+                  onChange={(ev) => setEmail(ev.target.value)}
+                />
+                <CityHolder>
+                  <Input
+                    type="text"
+                    placeholder="City"
+                    value={city}
+                    name="city"
+                    onChange={(ev) => setCity(ev.target.value)}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Postal Code"
+                    value={postalCode}
+                    name="postalCode"
+                    onChange={(ev) => setPostalCode(ev.target.value)}
+                  />
+                </CityHolder>
+                <Input
+                  type="text"
+                  placeholder="Street Address"
+                  value={streetAddress}
+                  name="streetAddress"
+                  onChange={(ev) => setStreetAddress(ev.target.value)}
+                />
+                <Input
+                  type="text"
+                  placeholder="Country"
+                  value={country}
+                  name="country"
+                  onChange={(ev) => setCountry(ev.target.value)}
+                />
+                <Button black="true" block="true" onClick={goToPayment}>
+                  Continue to payment
+                </Button>
+              </Box>
             )}
-          </Box>
-        </ColumnsWrapper>
-      </StyledDiv>
-    </div>
-  );
+          </ColumnsWrapper>
+        </StyledDiv>
+      </div>
+    );
+  }
 }
 
 const StyledDiv = styled.div`
@@ -122,6 +227,14 @@ const ColumnsWrapper = styled.div`
   @media screen and (min-width: 768px) {
     grid-template-columns: 1.2fr 0.8fr;
   }
+  gap: 40px;
+  margin-top: 40px;
+`;
+const ColumnsWrapperSuccess = styled.div`
+
+  @media screen and (min-width: 768px) {
+    grid-template-columns: 1.2fr 0.8fr;
+  } */
   gap: 40px;
   margin-top: 40px;
 `;
@@ -183,4 +296,12 @@ const Table = styled.table`
   td {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
   }
+`;
+const Input = styled.input`
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
 `;
